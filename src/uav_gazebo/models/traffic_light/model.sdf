@@ -1,0 +1,66 @@
+<?xml version="1.0" ?>
+<!-- Светофор: столб 5 м + корпус с тремя лампами (красная/жёлтая/зелёная).
+     Лампы на грани y=-0.19, поэтому смотрят на -Y (к дороге) без поворота модели.
+     Высокий (5 м) -> попадает в /scan на высоте полёта, Nav2 обходит.
+     Цель для YOLO (traffic light). -->
+<sdf version="1.9">
+  <model name="traffic_light">
+    <static>true</static>
+    <link name="link">
+
+      <!-- Столб 0 .. 5 м -->
+      <visual name="pole_visual">
+        <pose>0 0 2.5 0 0 0</pose>
+        <geometry><cylinder><radius>0.05</radius><length>5.0</length></cylinder></geometry>
+        <material>
+          <ambient>0.12 0.12 0.13 1</ambient>
+          <diffuse>0.2 0.2 0.22 1</diffuse>
+        </material>
+      </visual>
+      <collision name="pole_collision">
+        <pose>0 0 2.5 0 0 0</pose>
+        <geometry><cylinder><radius>0.05</radius><length>5.0</length></cylinder></geometry>
+      </collision>
+
+      <!-- Корпус -->
+      <visual name="box_visual">
+        <pose>0 -0.06 5.2 0 0 0</pose>
+        <geometry><box><size>0.3 0.24 0.9</size></box></geometry>
+        <material>
+          <ambient>0.1 0.1 0.1 1</ambient>
+          <diffuse>0.18 0.18 0.18 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Лампы: тонкие диски (ось по Y, roll 90°), на передней грани (y=-0.19) -->
+      <visual name="red_visual">
+        <pose>0 -0.19 5.5 1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.09</radius><length>0.02</length></cylinder></geometry>
+        <material>
+          <ambient>0.9 0.05 0.05 1</ambient>
+          <diffuse>1 0 0 1</diffuse>
+          <emissive>0.9 0.05 0.05 1</emissive>
+        </material>
+      </visual>
+      <visual name="yellow_visual">
+        <pose>0 -0.19 5.2 1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.09</radius><length>0.02</length></cylinder></geometry>
+        <material>
+          <ambient>0.9 0.8 0.05 1</ambient>
+          <diffuse>1 0.9 0 1</diffuse>
+          <emissive>0.9 0.8 0.05 1</emissive>
+        </material>
+      </visual>
+      <visual name="green_visual">
+        <pose>0 -0.19 4.9 1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.09</radius><length>0.02</length></cylinder></geometry>
+        <material>
+          <ambient>0.05 0.9 0.05 1</ambient>
+          <diffuse>0 1 0 1</diffuse>
+          <emissive>0.05 0.9 0.05 1</emissive>
+        </material>
+      </visual>
+
+    </link>
+  </model>
+</sdf>

@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.pytest_cache/
+
+# ROS2 / colcon
+build/
+install/
+log/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Gazebo / симуляция / журналы установки
+*.log
+*.log.*
+.gazebo/
+
+# PX4-Autopilot — сторонняя зависимость, клонируется отдельно (см. README «Установка»)
+PX4-Autopilot/
+
+# Служебные артефакты
+.setup_state/
+base_link
+
+# Скомпилированные инструменты
+tools/trajectory_trail/trajectory_trail
+
+# OS
+.DS_Store
+Thumbs.db

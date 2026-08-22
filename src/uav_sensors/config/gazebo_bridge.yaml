@@ -1,0 +1,52 @@
+# ============================================================
+# Конфигурация моста ros_gz_bridge (Gazebo Harmonic <-> ROS2 Jazzy).
+# Используется в uav_bringup как параметры ноды ros_gz_bridge.
+#
+# direction: GZ_TO_ROS  — Gazebo -> ROS2 (сенсоры)
+#            ROS_TO_GZ  — ROS2 -> Gazebo (команды)
+#
+# ВАЖНО: в Gazebo Harmonic камера OakD-Lite (модель x500_depth) публикует
+# сенсоры на НЕСКОПИРОВАННЫЕ топики, заданные через <topic> в model.sdf:
+#   /camera              — RGB-изображение (sensor IMX214)
+#   /camera_info         — параметры RGB-камеры
+#   /depth_camera        — карта глубины (sensor StereoOV7251)
+#   /depth_camera/points — облако точек глубины
+# ============================================================
+
+# Камера (RGB) — источник для YOLO / детектора H-маркера
+- ros_topic_name: "/camera/image_raw"
+  gz_topic_name: "/camera"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+# Параметры RGB-камеры (CameraInfo) — полезно для проекции/калибровки
+- ros_topic_name: "/camera/camera_info"
+  gz_topic_name: "/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: GZ_TO_ROS
+
+# Карта глубины — источник для VIO / OctoMap / depth_to_scan
+- ros_topic_name: "/camera/depth"
+  gz_topic_name: "/depth_camera"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: GZ_TO_ROS
+
+# Облако точек — для VoxelLayer в Nav2. ОТКЛЮЧЕНО: VoxelLayer в nav2_params.yaml
+# выключен, поэтому мост PointCloud2 не нужен и только грузит CPU
+# (сериализация облака точек на каждый кадр). Раскомментируйте, если снова
+# включите VoxelLayer.
+# - ros_topic_name: "/camera/points"
+#   gz_topic_name: "/depth_camera/points"
+#   ros_type_name: "sensor_msgs/msg/PointCloud2"
+#   gz_type_name: "gz.msgs.PointCloudPacked"
+#   direction: GZ_TO_ROS
+
+# Симуляционное время Gazebo -> ROS2 (обязательно для use_sim_time в Nav2)
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "gz.msgs.Clock"
+  direction: GZ_TO_ROS

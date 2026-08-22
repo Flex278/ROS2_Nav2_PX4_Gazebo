@@ -1,0 +1,2 @@
+PX4-Autopilot:      99c40407ffd7ac184e2d7b4b293f36f10fe561ef
+PX4-gazebo-models:  d754381a1cecdd7f17050acd72bf5bf1327bced6

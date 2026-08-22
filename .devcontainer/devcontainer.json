@@ -1,0 +1,32 @@
+{
+    "name": "UAV Digital Twin (PX4 + ROS2 Jazzy + Gazebo Harmonic)",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "workspaceFolder": "/workspaces/ROS2_Nav2_PX4_Gazebo",
+    "runArgs": [
+        "--gpus", "all",
+        "--network", "host",
+        "--privileged"
+    ],
+    "containerEnv": {
+        "DISPLAY": "${localEnv:DISPLAY}",
+        "__NV_PRIME_RENDER_OFFLOAD": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "NVIDIA_DRIVER_CAPABILITIES": "all"
+    },
+    "mounts": [
+        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind"
+    ],
+    "postCreateCommand": "bash scripts/setup_venv.sh || true",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-iot.vscode-ros"
+            ]
+        }
+    }
+}

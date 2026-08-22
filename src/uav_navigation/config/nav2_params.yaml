@@ -1,0 +1,248 @@
+# ============================================================
+# Параметры Nav2 для квадрокоптера (ROS2 Jazzy).
+#
+# ВАЖНО: Nav2 изначально плоский (2D). Высоту удерживает offboard-нода
+# через OffboardControlMode (position+z). 3D-данные подключаются через
+# VoxelLayer (см. costmap_3d.yaml, подключается в local_costmap ниже).
+#
+# Интеграция: Nav2 публикует /cmd_vel (geometry_msgs/Twist);
+# offboard-нода конвертирует Twist в position setpoint (следующий шаг roadmap).
+#
+# Одометрия: Nav2 требует nav_msgs/Odometry. Топик /fmu/out/vehicle_odometry
+# публикуется PX4 в типе px4_msgs/VehicleOdometry (NED) — подставлять его сюда
+# НЕЛЬЗЯ (bt_navigator подписывается как nav_msgs/Odometry, возникает конфликт
+# типов на топике). Нода odom_tf_broadcaster публикует /odom (nav_msgs/Odometry)
+# и TF odom->base_link из одного источника, поэтому позиционирование Nav2
+# полагается на TF odom->base_link, а скорость — на /odom.
+# ============================================================
+
+bt_navigator:
+  ros__parameters:
+    use_sim_time: True
+    global_frame: odom
+    robot_base_frame: base_link
+    odom_topic: /odom
+    default_bt_xml_filename: "package://uav_navigation/behavior_trees/navigate_w_replanning.xml"
+    # ВАЖНО: nav2 Jazzy объявляет default_server_timeout как int 20 и делает
+    # std::chrono::milliseconds(20) = 20 мс (не секунд!). При низком RTF (~0.1)
+    # executor серверов занят обновлением costmap дольше 20 мс sim, из-за чего
+    # ComputePathToPose/FollowPath периодически не аккуются и BT обрывается.
+    # Ставим 20000 мс = 20 с sim — серверы успевают ответить.
+    default_server_timeout: 20000
+    default_cancel_timeout: 20000
+    # В Jazzy все встроенные BT-плагины грузятся автоматически (в nav2_bringup
+    # plugin_lib_names закомментирован). Явный неполный список ломал дерево
+    # ("ID [ComputePathToPose] already registered" — не хватало RecoveryNode /
+    # PipelineSequence / RateController).
+    error_code_names:
+      - compute_path_error_code
+      - follow_path_error_code
+
+planner_server:
+  ros__parameters:
+    expected_planner_frequency: 1.0
+    use_sim_time: True
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_navfn_planner::NavfnPlanner"
+      tolerance: 0.5          # [м] допуск достижения цели
+      use_astar: false
+      allow_unknown: true
+
+controller_server:
+  ros__parameters:
+    use_sim_time: True
+    controller_frequency: 20.0
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.001
+    min_theta_velocity_threshold: 0.001
+    progress_checker_plugin: "progress_checker"
+    goal_checker_plugins: ["general_goal_checker"]
+    controller_plugins: ["FollowPath"]
+
+    # DWB (holonomic — квадрокоптер движется в любом направлении).
+    # ВАЖНО: вращение (theta) отключено. Критики RotateToGoal/GoalAlign/PathAlign
+    # разворачивают дрон на курс, а nav2_commander_node интерпретирует /cmd_vel
+    # фиксированным swap (linear.x->восток, linear.y->север) БЕЗ учёта yaw.
+    # При вращении swap даёт неверное направление — дрон уходит вбок (на север).
+    # Голономному дрону поворот не нужен, поэтому убираем критики ориентации.
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      debug_trajectory_details: True
+      # min_vel_x ДОЛЖЕН быть отрицательным: иначе DWB не может командовать
+      # запад (vx < 0) и миссия «возврат на (0,0)» застревает (дрон осциллирует
+      # север/юг, не прогрессируя по x). Было 0.0 — исправлено на -1.0.
+      min_vel_x: -0.6
+      min_vel_y: -0.6
+      max_vel_x: 0.6
+      max_vel_y: 0.6
+      max_vel_theta: 0.0
+      min_speed_xy: 0.0
+      max_speed_xy: 0.6
+      min_speed_theta: 0.0
+      acc_lim_x: 1.0
+      acc_lim_y: 1.0
+      acc_lim_theta: 3.2
+      decel_lim_x: -1.0
+      decel_lim_y: -1.0
+      decel_lim_theta: -3.2
+      vx_samples: 20
+      vy_samples: 10
+      vtheta_samples: 20
+      sim_time: 2.5
+      linear_granularity: 0.05
+      angular_granularity: 0.025
+      transform_tolerance: 0.2
+      # Допуск достижения цели: было 0.5. Дрон (позиционный контроллер) у цели
+      # доползает до ~0.7 м и зависает (не может закрыть остаток), из-за чего
+      # progress_checker циклит recovery и дрон теряет контроль. 1.0 м даёт
+      # запас при зазоре маршрута до препятствий >= 2.0 м.
+      xy_goal_tolerance: 1.0
+      # Порог «робот остановился». Было 0.4 — при max_vel 0.5 это 80% максимума,
+      # из-за чего Oscillation-критик считал дрон «остановленным» на рабочей
+      # скорости и резал выходной cmd_vel (фактическая скорость падала до ~0.05-0.25 м/с).
+      trans_stopped_velocity: 0.05
+      # Оценивать ВСЕ траектории и брать лучшую (иначе берётся первая валидная —
+      # обычно самая медленная, что и давало ~0.026 м/с).
+      short_circuit_trajectory_evaluation: False
+      stateful: True
+      critics: ["Oscillation", "BaseObstacle", "PathDist", "GoalDist"]
+      BaseObstacle.scale: 0.10
+      PathDist.scale: 32.0
+      GoalDist.scale: 20.0
+      RotateToGoal.slowing_factor: 5.0
+      RotateToGoal.lookahead_time: -1.0
+
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.5
+      movement_time_allowance: 10.0
+
+    general_goal_checker:
+      stateful: True
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 1.0
+      yaw_goal_tolerance: 0.25
+
+behavior_server:
+  ros__parameters:
+    use_sim_time: True
+    costmap_topic: local_costmap/costmap_raw
+    footprint_topic: local_costmap/published_footprint
+    cycle_frequency: 10.0
+    behavior_plugins: ["spin", "backup", "drive_on_heading", "wait"]
+    spin:
+      plugin: "nav2_behaviors::Spin"
+    backup:
+      plugin: "nav2_behaviors::BackUp"
+    drive_on_heading:
+      plugin: "nav2_behaviors::DriveOnHeading"
+    wait:
+      plugin: "nav2_behaviors::Wait"
+    global_frame: odom
+    robot_base_frame: base_link
+    transform_tolerance: 0.1
+
+waypoint_follower:
+  ros__parameters:
+    use_sim_time: True
+    loop_rate: 20
+    stop_on_failure: false
+    waypoint_task_executor_plugin: "wait_at_waypoint"
+    wait_at_waypoint:
+      plugin: "nav2_waypoint_follower::WaitAtWaypoint"
+      enabled: True
+      waypoint_pause_duration: 200
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      use_sim_time: True
+      update_frequency: 5.0
+      publish_frequency: 2.0
+      global_frame: odom
+      robot_base_frame: base_link
+      rolling_window: True
+      width: 10
+      height: 10
+      resolution: 0.1
+      robot_radius: 0.35
+      # Допуск ожидания трансформации. При низком RTF симуляции odom TF
+      # публикуется неравномерно (от 11 Гц до пауз 0.3-0.6 с), из-за чего
+      # MessageFilter obstacle_layer дропал свежие сканы как «earlier than all
+      # data in the transform cache». Увеличено с дефолтных 0.3 до 1.0 с.
+      transform_tolerance: 1.0
+      # VoxelLayer выключен: он потребляет облако точек /camera/points
+      # (640x480 @ 30 Гц), что перегружает однопоточный executor controller_server
+      # (control loop пропускает 20 Гц, follow_path не аккуется -> таймаут).
+      # Для плоской 2D-навигации достаточно obstacle_layer (скан из depth_to_scan).
+      plugins: ["obstacle_layer", "inflation_layer"]
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.5
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          obstacle_max_range: 9.0
+          obstacle_min_range: 0.1
+      voxel_layer:
+        plugin: "nav2_costmap_2d::VoxelLayer"
+        enabled: False
+        footprint_clearing_enabled: True
+        max_obstacle_height: 2.5
+        origin_z: 0.0
+        z_resolution: 0.2
+        z_voxels: 16
+        publish_voxel_map: True
+        observation_sources: pointcloud
+        pointcloud:
+          topic: /camera/points
+          max_obstacle_height: 2.5
+          min_obstacle_height: 0.0
+          data_type: "PointCloud2"
+          clearing: True
+          marking: True
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 2.5
+        inflation_radius: 1.0
+      always_send_full_costmap: True
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      use_sim_time: True
+      update_frequency: 1.0
+      publish_frequency: 0.5
+      global_frame: odom
+      robot_base_frame: base_link
+      rolling_window: True
+      width: 30
+      height: 30
+      resolution: 0.1
+      robot_radius: 0.3
+      # См. комментарий в local_costmap: допуск ожидания TF при неравномерной
+      # публикации odom->base_link на низком RTF.
+      transform_tolerance: 1.0
+      plugins: ["obstacle_layer", "inflation_layer"]
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.5
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          obstacle_max_range: 9.0
+          obstacle_min_range: 0.1
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 2.5
+        inflation_radius: 1.0
+      always_send_full_costmap: True

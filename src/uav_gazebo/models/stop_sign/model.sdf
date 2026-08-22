@@ -1,0 +1,49 @@
+<?xml version="1.0" ?>
+<!-- Дорожный знак «STOP»: столб + красный восьмиугольник (polyline).
+     Табличка повёрнута roll=90°, чтобы нормаль смотрела на -Y (к дороге),
+     когда знак стоит на правом тротуаре (y > 0). Цель для YOLO (stop sign). -->
+<sdf version="1.9">
+  <model name="stop_sign">
+    <static>true</static>
+    <link name="link">
+
+      <!-- Столб 0 .. 2.4 м -->
+      <visual name="pole_visual">
+        <pose>0 0 1.2 0 0 0</pose>
+        <geometry><cylinder><radius>0.03</radius><length>2.4</length></cylinder></geometry>
+        <material>
+          <ambient>0.3 0.3 0.32 1</ambient>
+          <diffuse>0.45 0.45 0.48 1</diffuse>
+        </material>
+      </visual>
+      <collision name="pole_collision">
+        <pose>0 0 1.2 0 0 0</pose>
+        <geometry><cylinder><radius>0.03</radius><length>2.4</length></cylinder></geometry>
+      </collision>
+
+      <!-- Красный восьмиугольник (плоскость X-Y, экструзия по Z; после roll 90°
+           нормаль +Z -> -Y, то есть смотрит на дорогу) -->
+      <visual name="plate_visual">
+        <pose>0 0 2.4 1.5708 0 0</pose>
+        <geometry>
+          <polyline>
+            <height>0.02</height>
+            <point>0.323 0.134</point>
+            <point>0.134 0.323</point>
+            <point>-0.134 0.323</point>
+            <point>-0.323 0.134</point>
+            <point>-0.323 -0.134</point>
+            <point>-0.134 -0.323</point>
+            <point>0.134 -0.323</point>
+            <point>0.323 -0.134</point>
+          </polyline>
+        </geometry>
+        <material>
+          <ambient>0.6 0.05 0.05 1</ambient>
+          <diffuse>0.85 0.1 0.1 1</diffuse>
+        </material>
+      </visual>
+
+    </link>
+  </model>
+</sdf>

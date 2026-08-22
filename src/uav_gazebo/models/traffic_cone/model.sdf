@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<!-- Дорожный конус (~0.5 м): аппроксимация конуса стопкой цилиндров убывающего
+     радиуса + белая полоса. Низкий объект — визуальная цель, в /scan не попадает. -->
+<sdf version="1.9">
+  <model name="traffic_cone">
+    <static>true</static>
+    <link name="link">
+
+      <visual name="base_visual">
+        <pose>0 0 0.075 0 0 0</pose>
+        <geometry><cylinder><radius>0.18</radius><length>0.15</length></cylinder></geometry>
+        <material>
+          <ambient>0.7 0.25 0.05 1</ambient>
+          <diffuse>1 0.4 0.1 1</diffuse>
+        </material>
+      </visual>
+
+      <visual name="mid_visual">
+        <pose>0 0 0.225 0 0 0</pose>
+        <geometry><cylinder><radius>0.12</radius><length>0.15</length></cylinder></geometry>
+        <material>
+          <ambient>0.7 0.25 0.05 1</ambient>
+          <diffuse>1 0.4 0.1 1</diffuse>
+        </material>
+      </visual>
+
+      <visual name="top_visual">
+        <pose>0 0 0.4 0 0 0</pose>
+        <geometry><cylinder><radius>0.06</radius><length>0.2</length></cylinder></geometry>
+        <material>
+          <ambient>0.7 0.25 0.05 1</ambient>
+          <diffuse>1 0.4 0.1 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Белая отражающая полоса -->
+      <visual name="band_visual">
+        <pose>0 0 0.3 0 0 0</pose>
+        <geometry><cylinder><radius>0.125</radius><length>0.03</length></cylinder></geometry>
+        <material>
+          <ambient>0.8 0.8 0.8 1</ambient>
+          <diffuse>0.95 0.95 0.95 1</diffuse>
+        </material>
+      </visual>
+
+      <collision name="collision">
+        <pose>0 0 0.25 0 0 0</pose>
+        <geometry><cylinder><radius>0.18</radius><length>0.5</length></cylinder></geometry>
+      </collision>
+
+    </link>
+  </model>
+</sdf>

@@ -1,0 +1,75 @@
+<?xml version="1.0" ?>
+<!-- Низкополигональный пешеход (~1.8 м), движущаяся цель для YOLO (класс person).
+     Собран из простых боксов: ноги, туловище, руки, голова. Сплошные цвета.
+     static=true: движется телепортом через set_pose (scripts/move_target.py),
+     физика не симулируется (фигура не падает). -->
+<sdf version="1.9">
+  <model name="pedestrian">
+    <static>true</static>
+    <link name="link">
+
+      <!-- Ноги -->
+      <visual name="leg_left_visual">
+        <pose>0 0.12 0.4 0 0 0</pose>
+        <geometry><box><size>0.22 0.22 0.8</size></box></geometry>
+        <material>
+          <ambient>0.10 0.10 0.12 1</ambient>
+          <diffuse>0.18 0.18 0.20 1</diffuse>
+        </material>
+      </visual>
+      <visual name="leg_right_visual">
+        <pose>0 -0.12 0.4 0 0 0</pose>
+        <geometry><box><size>0.22 0.22 0.8</size></box></geometry>
+        <material>
+          <ambient>0.10 0.10 0.12 1</ambient>
+          <diffuse>0.18 0.18 0.20 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Туловище -->
+      <visual name="torso_visual">
+        <pose>0 0 1.15 0 0 0</pose>
+        <geometry><box><size>0.5 0.28 0.65</size></box></geometry>
+        <material>
+          <ambient>0.08 0.12 0.25 1</ambient>
+          <diffuse>0.16 0.24 0.45 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Руки -->
+      <visual name="arm_left_visual">
+        <pose>0 0.32 1.1 0 0 0</pose>
+        <geometry><box><size>0.14 0.14 0.6</size></box></geometry>
+        <material>
+          <ambient>0.08 0.12 0.25 1</ambient>
+          <diffuse>0.16 0.24 0.45 1</diffuse>
+        </material>
+      </visual>
+      <visual name="arm_right_visual">
+        <pose>0 -0.32 1.1 0 0 0</pose>
+        <geometry><box><size>0.14 0.14 0.6</size></box></geometry>
+        <material>
+          <ambient>0.08 0.12 0.25 1</ambient>
+          <diffuse>0.16 0.24 0.45 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Голова (телесный цвет) -->
+      <visual name="head_visual">
+        <pose>0 0 1.68 0 0 0</pose>
+        <geometry><box><size>0.24 0.24 0.26</size></box></geometry>
+        <material>
+          <ambient>0.85 0.70 0.58 1</ambient>
+          <diffuse>0.95 0.80 0.66 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- Общий collision (для depth-камеры target_localizer) -->
+      <collision name="collision">
+        <pose>0 0 0.9 0 0 0</pose>
+        <geometry><box><size>0.6 0.8 1.8</size></box></geometry>
+      </collision>
+
+    </link>
+  </model>
+</sdf>

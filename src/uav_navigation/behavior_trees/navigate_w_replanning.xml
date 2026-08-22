@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!-- Behavior Tree Nav2: навигация с перепланированием и восстановлением.
+     Стандартное дерево из nav2_bt_navigator (Jazzy). -->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="1" name="NavigateRecovery">
+      <PipelineSequence name="NavigateWithReplanning">
+        <RateController hz="1.0">
+          <DistanceController distance="1.0">
+            <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+          </DistanceController>
+          <FollowPath path="{path}" controller_id="FollowPath"/>
+        </RateController>
+      </PipelineSequence>
+      <ReactiveFallback name="RecoveryFallback">
+        <ClearEntireCostmap service_name="global_costmap/clear_entirely_global_costmap"/>
+        <ClearEntireCostmap service_name="local_costmap/clear_entirely_local_costmap"/>
+        <!-- Квадрокоптер голономный: вращение (Spin) ломает фиксированный swap
+             cmd_vel->setpoint в nav2_commander_node (см. nav2_params.yaml) и
+             уводит дрон вбок. Восстановление — просто подождать, зависнув. -->
+        <Wait wait_duration="2.0"/>
+      </ReactiveFallback>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

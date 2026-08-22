@@ -1,0 +1,24 @@
+# ============================================================
+# 3D-слой costmap (VoxelLayer / OctoMap).
+# Подключается как plugin в local_costmap/global_costmap для учёта
+# препятствий по высоте (Nav2 плоский, но статичные препятствия выше
+# уровня полёта должны маркироваться).
+# ============================================================
+
+voxel_layer:
+  plugin: "nav2_costmap_2d::VoxelLayer"
+  enabled: True
+  footprint_clearing_enabled: True
+  max_obstacle_height: 2.5      # [м] препятствия выше уровня зависания
+  origin_z: 0.0
+  z_resolution: 0.2
+  z_voxels: 16
+  publish_voxel_map: True
+  observation_sources: pointcloud
+  pointcloud:
+    topic: /camera/points       # облако точек с глубинной камеры
+    max_obstacle_height: 2.5
+    min_obstacle_height: 0.0
+    data_type: "PointCloud2"
+    clearing: True
+    marking: True

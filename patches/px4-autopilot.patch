@@ -1,0 +1,33 @@
+diff --git a/ROMFS/px4fmu_common/init.d-posix/px4-rc.params b/ROMFS/px4fmu_common/init.d-posix/px4-rc.params
+index d05f50146a..fed73e0187 100644
+--- a/ROMFS/px4fmu_common/init.d-posix/px4-rc.params
++++ b/ROMFS/px4fmu_common/init.d-posix/px4-rc.params
+@@ -3,3 +3,6 @@
+ 
+ #param set-default MAV_SYS_ID $((px4_instance+1))
+ #param set-default IMU_INTEG_RATE 250
++
++# Отключаем timesync uxrce_dds_client (иначе скачки времени → сброс TF → падение Nav2)
++param set-default UXRCE_DDS_SYNCT 0
+diff --git a/Tools/simulation/gz b/Tools/simulation/gz
+--- a/Tools/simulation/gz
++++ b/Tools/simulation/gz
+@@ -1 +1 @@
+-Subproject commit d754381a1cecdd7f17050acd72bf5bf1327bced6
++Subproject commit d754381a1cecdd7f17050acd72bf5bf1327bced6-dirty
+diff --git a/src/modules/simulation/gz_bridge/GZBridge.cpp b/src/modules/simulation/gz_bridge/GZBridge.cpp
+index 56c6d028a0..349f20e837 100644
+--- a/src/modules/simulation/gz_bridge/GZBridge.cpp
++++ b/src/modules/simulation/gz_bridge/GZBridge.cpp
+@@ -149,8 +149,10 @@ int GZBridge::init()
+ 
+ 
+ 		// If PX4_GZ_STANDALONE has been set, you can try to connect but GZ_SIM_RESOURCE_PATH needs to be set correctly to work.
++		// Таймаут спавна увеличен с 1с до 10с: при GUI-рендере через NVIDIA сервер Gazebo
++		// не успевает ответить на /world/<name>/create за 1 секунду (Service call timed out).
+ 		else {
+-			if (_node.Request(create_service, req, 1000, rep, result)) {
++			if (_node.Request(create_service, req, 10000, rep, result)) {
+ 				if (!rep.data() || !result) {
+ 					PX4_ERR("EntityFactory service call failed.");
+ 					return PX4_ERROR;
