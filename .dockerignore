@@ -1,0 +1,41 @@
+# ============================================================
+# .dockerignore — исключаем из build-контекста то, что
+# генерируется внутри Dockerfile или не нужно в образе.
+# ============================================================
+
+# Git
+.git/
+
+# PX4-Autopilot — клонируется и собирается внутри Dockerfile
+PX4-Autopilot/
+
+# Результаты сборки (генерируются внутри Dockerfile)
+build/
+install/
+log/
+
+# Python venv (создаётся внутри Dockerfile)
+venv/
+
+# Cкомпилированный бинарь trajectory_trail (собирается внутри Dockerfile)
+tools/trajectory_trail/trajectory_trail
+
+# Логи
+*.log
+setup_all.log
+
+# Состояние setup_all.sh
+.setup_state/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# VS Code
+.vscode/
+
+# Docker
+.dockerignore
+Dockerfile*
+docker-compose*.yml
