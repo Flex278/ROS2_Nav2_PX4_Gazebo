@@ -254,6 +254,13 @@ docker exec uav_mission bash -lc 'cd /workspaces/ROS2_Nav2_PX4_Gazebo && pytest 
    (`solvePnPRansac` восстанавливает позу камеры), затем сливать с GPS через EKF
    (VPS — visual positioning vs GPS) и мерить, насколько накопленный дрейф
    визуальной одометрии расходится с GPS.
+8. ⬜ **SLAM + статическая карта** (slam_toolbox + map_server + AMCL). Сейчас Nav2
+    работает в режиме «rolling window» (costmap вокруг дрона, без глобальной карты).
+    Пункт — запустить slam_toolbox на street.world (async mapping из `/scan` +
+    `/odom`), построить occupancy grid всего мира, сохранить как `.pgm` через
+    `map_saver_cli`, затем добавить `map_server` + AMCL для повторных полётов по
+    готовой карте. Итог: глобальное планирование по всей карте (а не только в окне
+    30×30 м) + «красивая карта» в RViz.
 
 ## Документация
 
