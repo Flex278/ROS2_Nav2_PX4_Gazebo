@@ -267,3 +267,5 @@ docker exec uav_mission bash -lc 'cd /workspaces/ROS2_Nav2_PX4_Gazebo && pytest 
 - `docs/architecture.md` — архитектура и связи пакетов.
 - `docs/topic_map.md` — карта топиков ROS2 ↔ PX4.
 - `docs/SUCCESSFUL_RUN_REFERENCE.md` — рабочая конфигурация и история правок.
+
+- Alex Flex   email: bus278@gmail.com
