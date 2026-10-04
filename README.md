@@ -224,7 +224,7 @@ docker exec uav_mission bash scripts/_kill_sim_tmp.sh
   launch-файле должна совпадать.
 - Миры: `<sky>` удалён — на llvmpipe давал тёмное небо.
 
-## Тесты
+## Тест
 
 ```bash
 # чистая логика CV/математики, без rclpy — можно на хосте
@@ -260,7 +260,7 @@ docker exec uav_mission bash -lc 'cd /workspaces/ROS2_Nav2_PX4_Gazebo && pytest 
     готовой карте. Итог: глобальное планирование по всей карте (а не только в окне
     30×30 м) + «красивая карта» в RViz.
 
-## Документация
+## Док
 
 - `docs/architecture.md` — архитектура и связи пакетов.
 - `docs/topic_map.md` — карта топиков ROS2 ↔ PX4.
@@ -280,7 +280,7 @@ inside a single Docker container (VS Code Dev Container) based on the official
 Autopilot communication with ROS2 — via **MicroXRCE-DDS** (topics `/fmu/in`, `/fmu/out`),
 **without MAVROS**. Navigation and obstacle avoidance — **Nav2** (NavfnPlanner + DWB +
 Behavior Trees). Target detection (pedestrians, cars, cones) — **OpenCV + YOLO**
-in an isolated venv.
+in an isolated .venv .
 
 ## For whom
 
@@ -511,7 +511,7 @@ docker exec uav_mission bash -lc 'cd /workspaces/ROS2_Nav2_PX4_Gazebo && pytest 
 3. ✅ Computer vision (YOLO, H-marker detection, bbox → 3D).
 4. ✅ Navigation: depth → `/scan` → Nav2 → obstacle avoidance.
 5. ✅ The "Street Patrol" mission (28 targets) has been fully validated.
-6. ⬜ **Automatic Target Acquisition** (`target_tracker`: YOLO → Nav2 → hold). Currently, CV
+6. ✅ **Automatic Target Acquisition** (`target_tracker`: YOLO → Nav2 → hold). Currently, CV
 can *detect* targets (pedestrians / cars / cones) and publish their
 3D position, and Nav2 can follow mission waypoints. The goal is to close the gap: upon
 
@@ -520,7 +520,7 @@ YOLO detection, automatically generate a `goal_pose` for Nav2, fly to the target
 and hover over it. The result: "saw the target → flew to it
 
 it → hovered over it," without pre-programmed mission coordinates.
-7. ⬜ **Visual odometry** (RGB-D: ORB + `solvePnPRansac`) and **EKF fusion**
+7. ✅ **Visual odometry** (RGB-D: ORB + `solvePnPRansac`) and **EKF fusion**
 (VPS vs. GPS, drift metric). Currently, the drone's position is taken from PX4/GPS. The goal is to
 
 estimate camera motion: detect ORB features, compare them
